@@ -103,7 +103,16 @@ public class MitgliederDB implements Iterable<Record>
 	 */
 	public Record read(int recNum){
 		//TODO implement
-		return null;
+		int blockNum = getBlockNumOfRecord(recNum);
+
+		if (blockNum == -1)	return null; //record not found
+
+		int relativePos = recNum;//calculate the position of the record in the block
+		for (int i = 0; i < blockNum; i++) {
+			relativePos -= db[i].getNumberOfRecords();
+		}
+
+		return db[blockNum].getRecord(relativePos);
 	}
 	
 	/**
@@ -113,6 +122,18 @@ public class MitgliederDB implements Iterable<Record>
 	 */
 	public int findPos(String searchTerm){
 		//TODO implement
+		int recNum = 1;
+		//iterate over all blocks
+		for(DBBlock block : db){
+			//iterate over all records in the block
+			for (Record rec : block){//1 = first record
+				//search term matches record id
+				if(rec.getAttribute(1).equals(searchTerm)) return recNum;
+
+				recNum++;
+			}
+		}
+		//no record matching the search term found
 		return -1;
 	}
 	
@@ -123,7 +144,9 @@ public class MitgliederDB implements Iterable<Record>
 	 */
 	public int insert(Record record){
 		//TODO implement
-		return -1;
+		//unsorted: just append record at the end of next free block
+		appendRecord(record);
+		return getNumberOfRecords();
 	}
 	
 	/**

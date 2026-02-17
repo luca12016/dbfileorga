@@ -95,7 +95,7 @@ public abstract class MitgliederDB implements Iterable<Record>
 		return db[i];
 	}
 	
-	
+
 	/**
 	 * Returns the record matching the record number
 	 * @param recNum the term to search for
@@ -130,6 +130,22 @@ public abstract class MitgliederDB implements Iterable<Record>
 	 * 
 	 */
 	public abstract void modify(int numRecord, Record record);
+
+	protected int calcRelativeRecNumInBlock(int recNum, int blockNum){
+		int relativeRecNum = recNum;
+		for (int i = 0; i < blockNum; i++) {
+			relativeRecNum -= db[i].getNumberOfRecords();
+		}
+		return relativeRecNum;
+	}
+
+	protected int calcFirstRecNumInBlock(int blockNum) {
+		int firstRecNumInBlock = 1;
+		for (int i = 0; i < blockNum; i++) {
+			firstRecNumInBlock += db[i].getNumberOfRecords();
+		}
+		return firstRecNumInBlock;
+	}
 
 	
 	@Override

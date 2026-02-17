@@ -34,6 +34,18 @@ public class MitgliederDBOrdered extends MitgliederDB {
     @Override
 	public int findPos(String searchTerm){
 		//TODO implement
+		int recNum = 1;
+		//iterate over all blocks
+		for(DBBlock block : db){
+			//iterate over all records in the block
+			for (Record rec : block){//1 = first record
+				//search term matches record id
+				if(rec.getAttribute(1).equals(searchTerm)) return recNum;
+
+				//search term did not match, check next record
+				recNum++;
+			}
+		}
 		//no record matching the search term found
 		return -1;
 	}
@@ -45,14 +57,61 @@ public class MitgliederDBOrdered extends MitgliederDB {
 	 */
     @Override
 	public int insert(Record record){
-		//TODO implement
+		//record too long for one block
+		if(record.length() > DBBlock.BLOCKSIZE) return -1;
+
+		//if db is empty jsut insert record
+		if (getNumberOfRecords() == 0) {
+			appendRecord(record);
+			return 1;
+		}
+
 		//find position of insertion
         int insertionPos = 1;
         while ( Integer.parseInt(read(insertionPos).getAttribute(1)) < Integer.parseInt(record.getAttribute(1)) ) {
             insertionPos++;
+
+			//record to be appended at the end
+			if (insertionPos > getNumberOfRecords()) {
+				appendRecord(record);
+				return insertionPos;
+			}
         }
 
-        
+		//get insertion position in current block
+		int blockNum = getBlockNumOfRecord(insertionPos);
+
+		int firstRecNumInBlock = 1;
+		for (int i = 0; i < blockNum; i++) {
+			firstRecNumInBlock += db[i].getNumberOfRecords();
+		}
+
+		//temporarily store all records starting from insertion block
+		Record[] tempList = new Record[getNumberOfRecords() - firstRecNumInBlock + 1];
+		for (int i = 0; i < tempList.length; i++) {
+			tempList[i] = read(firstRecNumInBlock + i);
+		}
+
+		//delete content beginning with insertion block
+		for(int i = blockNum; i < db.length; i++) {
+			db[i].delete();
+		}
+
+		//insert records before new record
+		int localInsertPos = insertionPos - firstRecNumInBlock;
+		for (int i = 0; i < localInsertPos; i++) {
+			if(appendRecord(tempList[i]) == -1) return -1; //insertion failed
+		}
+
+		//insert new record at insertion position
+		if(appendRecord(record) == -1) return -1; //insertion failed
+
+		//reinsert all records after new record
+		for (Record rec : tempList) {
+			if(appendRecord(rec) == -1) return -1; //insertion failed
+		}
+
+		return insertionPos;//return position of inserted record
 	}
 	
 	/**

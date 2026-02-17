@@ -3,7 +3,7 @@ package dbfileorga;
 public class StartMitgliederDB {
 
 	public static void main(String[] args) {
-			MitgliederDB db = new MitgliederDB(false);
+			MitgliederDB db = new MitgliederDBUnordered();
 			System.out.println(db);
 			
 			// TODO test your implementation with the following use cases  

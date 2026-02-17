@@ -3,7 +3,7 @@ package dbfileorga;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class MitgliederDB implements Iterable<Record>
+public abstract class MitgliederDB implements Iterable<Record>
 {
 	
 	protected DBBlock db[] = new DBBlock[8];
@@ -101,61 +101,27 @@ public class MitgliederDB implements Iterable<Record>
 	 * @param recNum the term to search for
 	 * @return the record matching the search term
 	 */
-	public Record read(int recNum){
-		//TODO implement
-		int blockNum = getBlockNumOfRecord(recNum);
-
-		if (blockNum == -1)	return null; //record not found
-
-		int relativePos = recNum;//calculate the position of the record in the block
-		for (int i = 0; i < blockNum; i++) {
-			relativePos -= db[i].getNumberOfRecords();
-		}
-
-		return db[blockNum].getRecord(relativePos);
-	}
+	public abstract Record read(int recNum);
 	
 	/**
 	 * Returns the number of the first record that matches the search term
 	 * @param searchTerm the term to search for
 	 * @return the number of the record in the DB -1 if not found
 	 */
-	public int findPos(String searchTerm){
-		//TODO implement
-		int recNum = 1;
-		//iterate over all blocks
-		for(DBBlock block : db){
-			//iterate over all records in the block
-			for (Record rec : block){//1 = first record
-				//search term matches record id
-				if(rec.getAttribute(1).equals(searchTerm)) return recNum;
+	public abstract int findPos(String searchTerm);
 
-				recNum++;
-			}
-		}
-		//no record matching the search term found
-		return -1;
-	}
-	
 	/**
 	 * Inserts the record into the file and returns the record number
 	 * @param record
 	 * @return the record number of the inserted record
 	 */
-	public int insert(Record record){
-		//TODO implement
-		//unsorted: just append record at the end of next free block
-		appendRecord(record);
-		return getNumberOfRecords();
-	}
+	public abstract int insert(Record record);
 	
 	/**
 	 * Deletes the record specified 
 	 * @param numRecord number of the record to be deleted
 	 */
-	public void delete(int numRecord){
-		//TODO implement
-	}
+	public abstract void delete(int numRecord);
 	
 	/**
 	 * Replaces the record at the specified position with the given one.
@@ -163,9 +129,7 @@ public class MitgliederDB implements Iterable<Record>
 	 * @param record the new record
 	 * 
 	 */
-	public void modify(int numRecord, Record record){
-		//TODO
-	}
+	public abstract void modify(int numRecord, Record record);
 
 	
 	@Override

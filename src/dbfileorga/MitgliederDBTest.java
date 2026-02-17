@@ -10,18 +10,18 @@ import org.junit.Test;
 
 public class MitgliederDBTest {
 
-	MitgliederDB db = new MitgliederDB(false);
+	MitgliederDB db = new MitgliederDBOrdered();
 	MitgliederTableAsArray RecordArray = new MitgliederTableAsArray();
 	
 	@Before
 	public void setUp() throws Exception {
-		db = new MitgliederDB(false);
+		db = new MitgliederDBOrdered();
     }
 	
 	@Test
 	public void testGetNumberOfRecords(){
 		assertEquals(35,db.getNumberOfRecords());
-		db = new MitgliederDB();
+		db = new MitgliederDBOrdered();
 		assertEquals(0,db.getNumberOfRecords());
 	}
 	
@@ -46,7 +46,7 @@ public class MitgliederDBTest {
 			}
 		}
 		assertEquals(-1,db.getBlockNumOfRecord(36));
-		db = new MitgliederDB();
+		db = new MitgliederDBOrdered();
 		assertEquals(-1,db.getBlockNumOfRecord(1));
 	}
 	
@@ -57,7 +57,7 @@ public class MitgliederDBTest {
 			assertEquals(RecordArray.records[recNum], currRecord.toString());
 			recNum++;
 		}
-		db = new MitgliederDB();
+		db = new MitgliederDBOrdered();
 		assertFalse(db.iterator().hasNext());
 	}
 	

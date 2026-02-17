@@ -19,10 +19,7 @@ public class MitgliederDBOrdered extends MitgliederDB {
 
         if (blockNum == -1) return null; //record not found
 
-        int relativePos = recNum;//calculate the position of the record in the block
-        for (int i = 0; i < blockNum; i++) {
-            relativePos -= db[i].getNumberOfRecords();
-        }
+        int relativePos = calcRelativeRecNumInBlock(recNum, blockNum);
 
         return db[blockNum].getRecord(relativePos);
     }
@@ -156,14 +153,43 @@ public class MitgliederDBOrdered extends MitgliederDB {
     @Override
     public void modify(int numRecord, Record record) {
         //TODO
+		//record too long for one block
+		if (record.length() > DBBlock.BLOCKSIZE) return;
+
+		//invalid record number
+		if (numRecord < 1 || numRecord > getNumberOfRecords()) return;
+
+		//special case: length exactly matches
+		if(record.length() == read(numRecord).length() ){
+			int blockNum = getBlockNumOfRecord(numRecord);
+
+			calcRelativeRecNumInBlock(numRecord, blockNum);
+
+			//only delete affected block
+			Record[] tempList = new Record[db[blockNum].getNumberOfRecords()];
+			for(int i = 0; i < tempList.length; i++){
+				if(i == numRecord) {
+					tempList[i] = record;//replace record at numRecord with new record instead of reading
+				}else{
+					tempList[i] = read(numRecord);
+				}
+			}
+
+			db[blockNum].delete();
+
+			//reinsert all records
+			for(Record rec : tempList){
+				appendRecord(rec);
+			}
+			return;
+		}
+
+		//if length does not match
+		//delete and reinsert changed record
+		delete(numRecord);
+		insert(record);
     }
 
-    private int calcFirstRecNumInBlock(int blockNum) {
-        int firstRecNumInBlock = 1;
-        for (int i = 0; i < blockNum; i++) {
-            firstRecNumInBlock += db[i].getNumberOfRecords();
-        }
-        return firstRecNumInBlock;
-    }
+
 
 }

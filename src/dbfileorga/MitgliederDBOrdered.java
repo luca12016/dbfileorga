@@ -104,8 +104,8 @@ public class MitgliederDBOrdered extends MitgliederDB {
         if (appendRecord(record) == -1) return -1; //insertion failed
 
         //reinsert all records after new record
-        for (Record rec : tempList) {
-            if (appendRecord(rec) == -1) return -1; //insertion failed
+        for (int i = localInsertPos; i < tempList.length; i++) {
+            if (appendRecord(tempList[i]) == -1) return -1; //insertion failed
         }
 
         return insertionPos;//return position of inserted record
@@ -121,26 +121,28 @@ public class MitgliederDBOrdered extends MitgliederDB {
         //TODO implement
         if (numRecord < 1 || numRecord > getNumberOfRecords()) return;//invalid record number
 
-		int blockNum = getBlockNumOfRecord(numRecord);
+        int blockNum = getBlockNumOfRecord(numRecord);
 
         int firstRecNumInBlock = calcFirstRecNumInBlock(blockNum);
 
-		//temporarily store all records starting from insertion block leaving out the record to be deleted
-		Record[] tempList = new Record[getNumberOfRecords() - firstRecNumInBlock];
-		for (int i = firstRecNumInBlock; i < tempList.length; i++) {
-			if(i == numRecord) continue;//skip record to be deleted
-			tempList[i] = read(firstRecNumInBlock + i);
-		}
+        //temporarily store all records starting from insertion block leaving out the record to be deleted
+        Record[] tempList = new Record[getNumberOfRecords() - firstRecNumInBlock+1];
+        for (int i = 0; i < tempList.length; i++) {
+            int currentRecNum = firstRecNumInBlock + i;
+            if (currentRecNum == numRecord) continue;//skip record to be deleted
+            tempList[i] = read(currentRecNum);
+        }
 
-		//delete all blocks
-		for(int i = blockNum; i < db.length; i++){
-			db[i].delete();
-		}
+        //delete all blocks
+        for (int i = blockNum; i < db.length; i++) {
+            db[i].delete();
+        }
 
-		//reinsert all records
-		for(Record rec : tempList){
-			appendRecord(rec); //insertion failed
-		}
+        //reinsert all records
+        for (Record rec : tempList) {
+            if (rec != null) //sort out deleted record
+                appendRecord(rec);//insertion failed
+        }
     }
 
     /**
@@ -153,43 +155,42 @@ public class MitgliederDBOrdered extends MitgliederDB {
     @Override
     public void modify(int numRecord, Record record) {
         //TODO
-		//record too long for one block
-		if (record.length() > DBBlock.BLOCKSIZE) return;
+        //record too long for one block
+        if (record.length() > DBBlock.BLOCKSIZE) return;
 
-		//invalid record number
-		if (numRecord < 1 || numRecord > getNumberOfRecords()) return;
+        //invalid record number
+        if (numRecord < 1 || numRecord > getNumberOfRecords()) return;
 
-		//special case: length exactly matches
-		if(record.length() == read(numRecord).length() ){
-			int blockNum = getBlockNumOfRecord(numRecord);
+        //special case: length exactly matches
+        if (record.length() == read(numRecord).length()) {
+            int blockNum = getBlockNumOfRecord(numRecord);
 
-			calcRelativeRecNumInBlock(numRecord, blockNum);
+            calcRelativeRecNumInBlock(numRecord, blockNum);
 
-			//only delete affected block
-			Record[] tempList = new Record[db[blockNum].getNumberOfRecords()];
-			for(int i = 0; i < tempList.length; i++){
-				if(i == numRecord) {
-					tempList[i] = record;//replace record at numRecord with new record instead of reading
-				}else{
-					tempList[i] = read(numRecord);
-				}
-			}
+            //only delete affected block
+            Record[] tempList = new Record[db[blockNum].getNumberOfRecords()];
+            for (int i = 0; i < tempList.length; i++) {
+                if (i == numRecord) {
+                    tempList[i] = record;//replace record at numRecord with new record instead of reading
+                } else {
+                    tempList[i] = read(numRecord);
+                }
+            }
 
-			db[blockNum].delete();
+            db[blockNum].delete();
 
-			//reinsert all records
-			for(Record rec : tempList){
-				appendRecord(rec);
-			}
-			return;
-		}
+            //reinsert all records
+            for (Record rec : tempList) {
+                appendRecord(rec);
+            }
+            return;
+        }
 
-		//if length does not match
-		//delete and reinsert changed record
-		delete(numRecord);
-		insert(record);
+        //if length does not match
+        //delete and reinsert changed record
+        delete(numRecord);
+        insert(record);
     }
-
 
 
 }

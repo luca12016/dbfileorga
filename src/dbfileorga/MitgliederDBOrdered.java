@@ -14,7 +14,6 @@ public class MitgliederDBOrdered extends MitgliederDB {
      */
     @Override
     public Record read(int recNum) {
-        //TODO implement
         int blockNum = getBlockNumOfRecord(recNum);
 
         if (blockNum == -1) return null; //record not found
@@ -32,7 +31,6 @@ public class MitgliederDBOrdered extends MitgliederDB {
      */
     @Override
     public int findPos(String searchTerm) {
-        //TODO implement
         int recNum = 1;
         //iterate over all blocks
         for (DBBlock block : db) {
@@ -118,7 +116,6 @@ public class MitgliederDBOrdered extends MitgliederDB {
      */
     @Override
     public void delete(int numRecord) {
-        //TODO implement
         if (numRecord < 1 || numRecord > getNumberOfRecords()) return;//invalid record number
 
         int blockNum = getBlockNumOfRecord(numRecord);
@@ -154,7 +151,6 @@ public class MitgliederDBOrdered extends MitgliederDB {
      */
     @Override
     public void modify(int numRecord, Record record) {
-        //TODO
         //record too long for one block
         if (record.length() > DBBlock.BLOCKSIZE) return;
 

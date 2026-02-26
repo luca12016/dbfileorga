@@ -14,6 +14,8 @@ public class MitgliederDBUnordered extends MitgliederDB {
      */
     @Override
     public Record read(int recNum) {
+        if (recNum < 1 || recNum > getNumberOfRecords()) return null;//invalid record number
+
         int blockNum = getBlockNumOfRecord(recNum);
 
         if (blockNum == -1) return null; //record not found
@@ -31,6 +33,8 @@ public class MitgliederDBUnordered extends MitgliederDB {
      */
     @Override
     public int findPos(String searchTerm) {
+        if (searchTerm == null) return -1;//invalid search term
+        
         int recNum = 1;
         //iterate over all blocks
         for (DBBlock block : db) {
